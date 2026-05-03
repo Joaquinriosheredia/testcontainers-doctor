@@ -2,6 +2,12 @@ import { execSync } from 'child_process';
 import { existsSync, statSync, accessSync, constants } from 'fs';
 import os from 'os';
 
+const HUB_IMAGES = [
+  'redis:7-alpine',
+  'postgres:16-alpine',
+  'confluentinc/cp-kafka:7.6.0',
+];
+
 function exec(cmd, timeoutMs = 10000) {
   try {
     const output = execSync(cmd, {
@@ -107,6 +113,50 @@ export async function checkDocker() {
       results.push({ name: 'Ryuk reaper', status: 'ok', message: 'Running' });
     } else {
       results.push({ name: 'Ryuk reaper', status: 'info', message: 'Not running (starts automatically with first test)' });
+    }
+  }
+
+  return results;
+}
+
+export async function checkDockerHubImages() {
+  const results = [];
+
+  for (const image of HUB_IMAGES) {
+    const colonIdx = image.lastIndexOf(':');
+    const namePart = colonIdx !== -1 ? image.slice(0, colonIdx) : image;
+    const tag      = colonIdx !== -1 ? image.slice(colonIdx + 1) : 'latest';
+    const repo     = namePart.includes('/') ? namePart : `library/${namePart}`;
+    const url      = `https://hub.docker.com/v2/repositories/${repo}/tags/${tag}`;
+
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (res.ok) {
+        results.push({
+          name: `Docker Hub: ${image}`,
+          status: 'ok',
+          message: `Image found on Docker Hub`,
+        });
+      } else if (res.status === 404) {
+        results.push({
+          name: `Docker Hub: ${image}`,
+          status: 'warn',
+          message: `Image not found on Docker Hub — pulling will fail`,
+          fix: `Check the image name and tag at https://hub.docker.com/r/${repo}/tags`,
+        });
+      } else {
+        results.push({
+          name: `Docker Hub: ${image}`,
+          status: 'info',
+          message: `Docker Hub returned HTTP ${res.status} — could not verify`,
+        });
+      }
+    } catch {
+      results.push({
+        name: `Docker Hub: ${image}`,
+        status: 'info',
+        message: `Docker Hub unreachable — image verification skipped`,
+      });
     }
   }
 

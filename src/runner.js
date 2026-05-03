@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
-import { checkDocker } from './checks/docker.js';
+import { checkDocker, checkDockerHubImages } from './checks/docker.js';
 import { checkJava } from './checks/java.js';
 import { checkConfig } from './checks/config.js';
 import { checkNetwork } from './checks/network.js';
@@ -20,6 +20,7 @@ const pkg = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'))
 
 const ALL_CHECKS = [
   { id: 'docker',  label: 'Docker',              fn: checkDocker },
+  { id: 'images',  label: 'Docker Hub Images',   fn: checkDockerHubImages },
   { id: 'java',    label: 'Java & Build Tools',  fn: checkJava },
   { id: 'config',  label: 'Testcontainers Config', fn: checkConfig },
   { id: 'network', label: 'Network',             fn: checkNetwork },
