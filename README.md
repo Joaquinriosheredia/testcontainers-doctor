@@ -12,7 +12,7 @@
 
 Your Testcontainers tests fail locally but pass in CI — or the other way around. The error is cryptic. You spend 30 minutes checking Docker, Java, sockets, and config files. You fix one thing and another breaks.
 
-**testcontainers-doctor** runs all those checks in 3 seconds and tells you exactly what is wrong and how to fix it.
+**testcontainers-doctor** runs all those checks in a few seconds and tells you exactly what is wrong and how to fix it.
 
 ---
 
